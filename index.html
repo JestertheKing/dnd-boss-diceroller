@@ -568,7 +568,32 @@
                     </div>
                     <div>
                         <label>Damage Type:</label>
-                        <input type="text" class="damage-type" placeholder="e.g., slashing">
+                        <select class="damage-type">
+                            <option value="">Select damage type...</option>
+                            <optgroup label="Physical">
+                                <option value="slashing">Slashing</option>
+                                <option value="piercing">Piercing</option>
+                                <option value="bludgeoning">Bludgeoning</option>
+                            </optgroup>
+                            <optgroup label="Elemental">
+                                <option value="fire">Fire</option>
+                                <option value="cold">Cold</option>
+                                <option value="lightning">Lightning</option>
+                                <option value="thunder">Thunder</option>
+                                <option value="acid">Acid</option>
+                            </optgroup>
+                            <optgroup label="Energy">
+                                <option value="force">Force</option>
+                                <option value="radiant">Radiant</option>
+                                <option value="necrotic">Necrotic</option>
+                                <option value="psychic">Psychic</option>
+                            </optgroup>
+                            <optgroup label="Special">
+                                <option value="poison">Poison</option>
+                                <option value="healing">Healing</option>
+                                <option value="temporary hit points">Temporary Hit Points</option>
+                            </optgroup>
+                        </select>
                     </div>
                     <div></div>
                 </div>
@@ -603,13 +628,8 @@
         let currentProfile = 'default';
         let profiles = {};
 
-        // DOM ready handler
         document.addEventListener('DOMContentLoaded', function() {
-            console.log('🚀 DOM loaded, initializing...');
-            
-            // Load saved data FIRST
             loadData();
-            console.log('📊 After loading, attacks array has:', attacks.length, 'items');
             
             document.querySelectorAll('.attack-type-option').forEach(option => {
                 option.addEventListener('click', function() {
@@ -620,16 +640,12 @@
                 });
             });
 
-            // DC checkbox handler
             document.getElementById('hasDC').addEventListener('change', function() {
                 const dcFields = document.getElementById('dcFields');
                 dcFields.style.display = this.checked ? 'block' : 'none';
             });
 
-            // IMPORTANT: Render attacks AFTER loading data
             renderAttacks();
-            
-            console.log('✅ Initialization complete - should show', attacks.length, 'attacks');
         });
 
         function toggleAttackFields() {
@@ -663,7 +679,32 @@
                 </div>
                 <div>
                     <label>Damage Type:</label>
-                    <input type="text" class="damage-type" placeholder="e.g., lightning">
+                    <select class="damage-type">
+                        <option value="">Select damage type...</option>
+                        <optgroup label="Physical">
+                            <option value="slashing">Slashing</option>
+                            <option value="piercing">Piercing</option>
+                            <option value="bludgeoning">Bludgeoning</option>
+                        </optgroup>
+                        <optgroup label="Elemental">
+                            <option value="fire">Fire</option>
+                            <option value="cold">Cold</option>
+                            <option value="lightning">Lightning</option>
+                            <option value="thunder">Thunder</option>
+                            <option value="acid">Acid</option>
+                        </optgroup>
+                        <optgroup label="Energy">
+                            <option value="force">Force</option>
+                            <option value="radiant">Radiant</option>
+                            <option value="necrotic">Necrotic</option>
+                            <option value="psychic">Psychic</option>
+                        </optgroup>
+                        <optgroup label="Special">
+                            <option value="poison">Poison</option>
+                            <option value="healing">Healing</option>
+                            <option value="temporary hit points">Temporary Hit Points</option>
+                        </optgroup>
+                    </select>
                 </div>
                 <div>
                     <button type="button" class="remove-damage-btn" onclick="removeDamageInput(this)">Remove</button>
@@ -676,10 +717,7 @@
             button.parentElement.parentElement.remove();
         }
 
-        // FORCE SAVE on every change
         function addAttack() {
-            console.log('🎯 ADD ATTACK STARTED');
-            
             const name = document.getElementById('attackName').value.trim();
             const category = document.getElementById('attackCategory').value;
             const attackRoll = document.getElementById('attackRoll').value.trim();
@@ -737,27 +775,16 @@
                 notes
             };
 
-            console.log('🔥 ADDING ATTACK:', attack);
             attacks.push(attack);
-            
-            // FORCE SAVE IMMEDIATELY
             saveData();
-            
             renderAttacks();
             clearForm();
-            
-            console.log('✅ ATTACK ADDED - Total attacks:', attacks.length);
         }
 
         function deleteAttack(id) {
-            console.log('🗑️ DELETING ATTACK:', id);
             attacks = attacks.filter(attack => attack.id !== id);
-            
-            // FORCE SAVE IMMEDIATELY  
             saveData();
-            
             renderAttacks();
-            console.log('✅ ATTACK DELETED - Total attacks:', attacks.length);
         }
 
         function clearForm() {
@@ -777,12 +804,36 @@
                     </div>
                     <div>
                         <label>Damage Type:</label>
-                        <input type="text" class="damage-type" placeholder="e.g., slashing">
+                        <select class="damage-type">
+                            <option value="">Select damage type...</option>
+                            <optgroup label="Physical">
+                                <option value="slashing">Slashing</option>
+                                <option value="piercing">Piercing</option>
+                                <option value="bludgeoning">Bludgeoning</option>
+                            </optgroup>
+                            <optgroup label="Elemental">
+                                <option value="fire">Fire</option>
+                                <option value="cold">Cold</option>
+                                <option value="lightning">Lightning</option>
+                                <option value="thunder">Thunder</option>
+                                <option value="acid">Acid</option>
+                            </optgroup>
+                            <optgroup label="Energy">
+                                <option value="force">Force</option>
+                                <option value="radiant">Radiant</option>
+                                <option value="necrotic">Necrotic</option>
+                                <option value="psychic">Psychic</option>
+                            </optgroup>
+                            <optgroup label="Special">
+                                <option value="poison">Poison</option>
+                                <option value="healing">Healing</option>
+                                <option value="temporary hit points">Temporary Hit Points</option>
+                            </optgroup>
+                        </select>
                     </div>
                     <div></div>
                 </div>
             `;
-            // Reset to attack type
             document.querySelectorAll('.attack-type-option').forEach(o => o.classList.remove('selected'));
             document.querySelector('.attack-type-option[data-type="attack"]').classList.add('selected');
             selectedAttackType = 'attack';
@@ -791,11 +842,9 @@
 
         function rollDice(formula) {
             try {
-                // Parse dice formula like "2d6+3" or "1d20+2d8+5"
                 let total = 0;
                 let breakdown = [];
                 
-                // Handle additions and subtractions
                 const parts = formula.replace(/\s/g, '').split(/([+-])/);
                 let currentSign = 1;
                 
@@ -809,7 +858,6 @@
                     }
                     
                     if (part.includes('d')) {
-                        // It's a dice roll
                         const [numDice, dieSize] = part.split('d').map(Number);
                         let rollTotal = 0;
                         let rolls = [];
@@ -823,7 +871,6 @@
                         total += currentSign * rollTotal;
                         breakdown.push(`${currentSign > 0 ? '+' : '-'}${numDice}d${dieSize}(${rolls.join(',')})`);
                     } else {
-                        // It's a modifier
                         const modifier = parseInt(part);
                         if (!isNaN(modifier)) {
                             total += currentSign * modifier;
@@ -832,7 +879,6 @@
                     }
                 }
                 
-                // Clean up the breakdown display
                 let breakdownStr = breakdown.join('').replace(/^\+/, '');
                 return `${total} (${breakdownStr})`;
             } catch (e) {
@@ -848,7 +894,6 @@
                 return;
             }
 
-            // Group attacks by category
             const attacksByCategory = {
                 'ACTION': attacks.filter(attack => attack.category === 'ACTION'),
                 'LEGENDARY': attacks.filter(attack => attack.category === 'LEGENDARY'),
@@ -857,7 +902,6 @@
 
             let html = '';
 
-            // Render each category
             Object.keys(attacksByCategory).forEach(category => {
                 const categoryAttacks = attacksByCategory[category];
                 
@@ -971,30 +1015,24 @@
             document.getElementById(`damage-${id}-${damageIndex}`).textContent = result;
         }
 
-        // Data management functions - PROFILE SYSTEM
         function saveData() {
             try {
-                // Save current attacks to current profile
                 profiles[currentProfile] = {
                     name: profiles[currentProfile]?.name || currentProfile,
                     attacks: [...attacks],
                     lastModified: new Date().toISOString()
                 };
                 
-                // Save all profiles to localStorage
                 localStorage.setItem('dndProfiles', JSON.stringify(profiles));
                 localStorage.setItem('dndCurrentProfile', currentProfile);
-                
-                console.log('✅ SAVED PROFILE:', currentProfile, 'with', attacks.length, 'attacks');
                 updateProfileList();
             } catch (e) {
-                console.error('❌ SAVE FAILED:', e);
+                console.error('Save failed:', e);
             }
         }
 
         function loadData() {
             try {
-                // Load all profiles
                 const savedProfiles = localStorage.getItem('dndProfiles');
                 const savedCurrentProfile = localStorage.getItem('dndCurrentProfile');
                 
@@ -1008,18 +1046,15 @@
                     currentProfile = 'default';
                 }
                 
-                // Load attacks from current profile
                 if (profiles[currentProfile]) {
                     attacks = [...profiles[currentProfile].attacks];
-                    console.log('✅ LOADED PROFILE:', currentProfile, 'with', attacks.length, 'attacks');
                 } else {
                     attacks = [];
-                    console.log('📝 NEW PROFILE:', currentProfile);
                 }
                 
                 updateProfileList();
             } catch (e) {
-                console.error('❌ LOAD FAILED:', e);
+                console.error('Load failed:', e);
                 attacks = [];
                 profiles = {};
                 currentProfile = 'default';
@@ -1051,10 +1086,9 @@
             if (profiles[profileKey]) {
                 currentProfile = profileKey;
                 attacks = [...profiles[profileKey].attacks];
-                saveData(); // Save current profile selection
+                saveData();
                 renderAttacks();
                 updateProfileList();
-                console.log('✅ SWITCHED TO PROFILE:', profiles[profileKey].name);
             }
         }
 
@@ -1103,7 +1137,6 @@
             if (confirm(`Delete profile "${profileName}"? This cannot be undone.`)) {
                 delete profiles[currentProfile];
                 
-                // Switch to first available profile
                 const remainingProfiles = Object.keys(profiles);
                 if (remainingProfiles.length > 0) {
                     loadProfile(remainingProfiles[0]);
@@ -1138,8 +1171,8 @@
                             <div class="profile-name">${profile.name} ${isActive ? '(Current)' : ''}</div>
                             <div class="profile-info">${profile.attacks.length} attacks • ${lastModified}</div>
                         </div>
-                        <div class="profile-actions">
-                            <button class="profile-btn" onclick="event.stopPropagation(); downloadSingleProfile('${key}')">📥 Download</button>
+                        <div>
+                            <button class="profile-btn" onclick="event.stopPropagation(); downloadSingleProfile('${key}')">📥</button>
                         </div>
                     </div>
                 `;
@@ -1154,8 +1187,7 @@
                 alert('No current profile to download!');
                 return;
             }
-            
-            downloadProfile(profile, currentProfile);
+            downloadProfile(profile);
         }
 
         function exportAllProfiles() {
@@ -1184,7 +1216,7 @@
             alert(`Downloaded ${Object.keys(profiles).length} monster profiles!`);
         }
 
-        function downloadProfile(profile, profileKey) {
+        function downloadProfile(profile) {
             const dataStr = JSON.stringify(profile, null, 2);
             const dataBlob = new Blob([dataStr], {type: 'application/json'});
             const url = URL.createObjectURL(dataBlob);
@@ -1199,9 +1231,7 @@
 
         function downloadSingleProfile(profileKey) {
             const profile = profiles[profileKey];
-            if (!profile) return;
-            
-            downloadProfile(profile, profileKey);
+            if (profile) downloadProfile(profile);
         }
 
         function importProfile() {
@@ -1217,22 +1247,12 @@
                 try {
                     const importedData = JSON.parse(e.target.result);
                     
-                    // Check if it's a single profile or multiple profiles
                     if (importedData.profiles) {
-                        // Multiple profiles file
+                        // Multiple profiles
                         let importedCount = 0;
-                        let skippedCount = 0;
-                        
                         Object.keys(importedData.profiles).forEach(key => {
                             const profile = importedData.profiles[key];
-                            if (profiles[key]) {
-                                if (confirm(`Profile "${profile.name}" already exists. Overwrite it?`)) {
-                                    profiles[key] = profile;
-                                    importedCount++;
-                                } else {
-                                    skippedCount++;
-                                }
-                            } else {
+                            if (!profiles[key] || confirm(`Profile "${profile.name}" exists. Overwrite?`)) {
                                 profiles[key] = profile;
                                 importedCount++;
                             }
@@ -1241,36 +1261,29 @@
                         if (importedCount > 0) {
                             saveData();
                             updateProfileList();
-                            alert(`Imported ${importedCount} profiles! ${skippedCount > 0 ? `Skipped ${skippedCount} duplicates.` : ''}`);
+                            alert(`Imported ${importedCount} profiles!`);
                         }
                         
-                    } else if (importedData.name && importedData.attacks && Array.isArray(importedData.attacks)) {
-                        // Single profile file
+                    } else if (importedData.name && importedData.attacks) {
+                        // Single profile
                         const profileKey = importedData.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
                         
-                        if (profiles[profileKey]) {
-                            if (!confirm(`Profile "${importedData.name}" already exists. Overwrite it?`)) {
-                                return;
-                            }
+                        if (!profiles[profileKey] || confirm(`Profile "${importedData.name}" exists. Overwrite?`)) {
+                            profiles[profileKey] = importedData;
+                            currentProfile = profileKey;
+                            attacks = [...importedData.attacks];
+                            saveData();
+                            renderAttacks();
+                            alert(`Profile "${importedData.name}" uploaded successfully!`);
                         }
-                        
-                        profiles[profileKey] = importedData;
-                        currentProfile = profileKey;
-                        attacks = [...importedData.attacks];
-                        
-                        saveData();
-                        renderAttacks();
-                        alert(`Profile "${importedData.name}" uploaded successfully!`);
                     } else {
-                        alert('Invalid JSON file format. Please upload a valid monster profile file.');
+                        alert('Invalid JSON file format.');
                     }
                 } catch (error) {
                     alert('Error reading file. Please ensure it\'s a valid JSON file.');
                 }
             };
             reader.readAsText(file);
-            
-            // Reset file input
             event.target.value = '';
         }
     </script>
