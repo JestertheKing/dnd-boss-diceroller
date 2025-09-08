@@ -31,6 +31,90 @@
             text-shadow: 0 0 10px rgba(255, 107, 107, 0.5);
         }
 
+        .save-load-section {
+            background: rgba(78, 205, 196, 0.1);
+            border: 1px solid rgba(78, 205, 196, 0.3);
+            border-radius: 8px;
+            padding: 15px;
+            margin-bottom: 20px;
+        }
+
+        .save-load-btn {
+            background: linear-gradient(45deg, #4ecdc4, #44a08d);
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            font-size: 14px;
+            border: none;
+        }
+
+        .save-load-btn:hover {
+            transform: translateY(-2px);
+            box-shadow: 0 5px 15px rgba(78, 205, 196, 0.4);
+        }
+
+        .clear-data-btn {
+            background: linear-gradient(45deg, #ff4757, #ff3838);
+            color: white;
+            cursor: pointer;
+            font-weight: bold;
+            padding: 10px 20px;
+            margin: 5px;
+            border-radius: 5px;
+            font-size: 14px;
+            border: none;
+        }
+
+        .clear-data-btn:hover {
+            background: #ff2828;
+        }
+
+        .profile-item {
+            background: rgba(0, 0, 0, 0.3);
+            border: 1px solid rgba(255, 255, 255, 0.2);
+            border-radius: 8px;
+            padding: 10px;
+            margin: 5px 0;
+            display: flex;
+            justify-content: space-between;
+            align-items: center;
+            cursor: pointer;
+            transition: all 0.3s ease;
+        }
+
+        .profile-item:hover {
+            background: rgba(255, 255, 255, 0.1);
+            border-color: #4ecdc4;
+        }
+
+        .profile-item.active {
+            background: rgba(78, 205, 196, 0.2);
+            border-color: #4ecdc4;
+        }
+
+        .profile-name {
+            font-weight: bold;
+            color: #ffd93d;
+        }
+
+        .profile-info {
+            font-size: 12px;
+            color: #ccc;
+        }
+
+        .profile-btn {
+            background: #4ecdc4;
+            color: white;
+            border: none;
+            padding: 4px 8px;
+            border-radius: 3px;
+            font-size: 11px;
+            cursor: pointer;
+        }
+
         .add-attack-section {
             background: rgba(255, 255, 255, 0.1);
             border-radius: 15px;
@@ -249,29 +333,6 @@
             font-size: 18px;
         }
 
-        .category-badge {
-            padding: 4px 8px;
-            border-radius: 4px;
-            font-size: 11px;
-            font-weight: bold;
-            text-transform: uppercase;
-        }
-
-        .category-badge.ACTION {
-            background: rgba(78, 205, 196, 0.3);
-            color: #4ecdc4;
-        }
-
-        .category-badge.LEGENDARY {
-            background: rgba(255, 215, 61, 0.3);
-            color: #ffd93d;
-        }
-
-        .category-badge.BROKEN {
-            background: rgba(255, 107, 107, 0.3);
-            color: #ff6b6b;
-        }
-
         .roll-btn {
             background: linear-gradient(45deg, #4ecdc4, #44a08d);
             color: white;
@@ -391,6 +452,31 @@
 <body>
     <div class="container">
         <h1>🎲 D&D Boss Monster Dice Roller 🎲</h1>
+        
+        <div class="save-load-section">
+            <h3 style="color: #4ecdc4; margin-bottom: 15px;">👹 Monster Profiles</h3>
+            
+            <div style="display: grid; grid-template-columns: 1fr auto auto; gap: 10px; margin-bottom: 15px; align-items: end;">
+                <div>
+                    <label style="color: #ffd93d; margin-bottom: 5px; display: block;">Profile Name:</label>
+                    <input type="text" id="profileName" placeholder="e.g., Ancient Red Dragon, Lich King, etc." style="width: 100%; padding: 8px; border-radius: 5px; border: none;">
+                </div>
+                <button class="save-load-btn" onclick="saveProfile()">💾 Save Profile</button>
+                <button class="save-load-btn" onclick="loadProfileDialog()">📂 Load Profile</button>
+            </div>
+            
+            <div style="display: grid; grid-template-columns: repeat(auto-fit, minmax(140px, 1fr)); gap: 8px; margin-bottom: 15px;">
+                <button class="save-load-btn" onclick="exportCurrentProfile()">📥 Download Current</button>
+                <button class="save-load-btn" onclick="exportAllProfiles()">📦 Download All</button>
+                <button class="save-load-btn" onclick="importProfile()">📤 Upload JSON</button>
+                <button class="save-load-btn" onclick="newProfile()">🆕 New Profile</button>
+                <button class="clear-data-btn" onclick="deleteProfile()">🗑️ Delete Profile</button>
+            </div>
+            
+            <div id="profileList" style="margin-top: 15px;"></div>
+            
+            <input type="file" id="fileInput" accept=".json" style="display: none;" onchange="handleFileImport(event)">
+        </div>
         
         <div class="add-attack-section">
             <h2 style="color: #ffd93d; margin-bottom: 20px;">Add New Attack</h2>
@@ -514,9 +600,17 @@
     <script>
         let attacks = [];
         let selectedAttackType = 'attack';
+        let currentProfile = 'default';
+        let profiles = {};
 
-        // Attack type selection
+        // DOM ready handler
         document.addEventListener('DOMContentLoaded', function() {
+            console.log('🚀 DOM loaded, initializing...');
+            
+            // Load saved data FIRST
+            loadData();
+            console.log('📊 After loading, attacks array has:', attacks.length, 'items');
+            
             document.querySelectorAll('.attack-type-option').forEach(option => {
                 option.addEventListener('click', function() {
                     document.querySelectorAll('.attack-type-option').forEach(o => o.classList.remove('selected'));
@@ -532,8 +626,10 @@
                 dcFields.style.display = this.checked ? 'block' : 'none';
             });
 
-            // Initialize
+            // IMPORTANT: Render attacks AFTER loading data
             renderAttacks();
+            
+            console.log('✅ Initialization complete - should show', attacks.length, 'attacks');
         });
 
         function toggleAttackFields() {
@@ -580,7 +676,10 @@
             button.parentElement.parentElement.remove();
         }
 
+        // FORCE SAVE on every change
         function addAttack() {
+            console.log('🎯 ADD ATTACK STARTED');
+            
             const name = document.getElementById('attackName').value.trim();
             const category = document.getElementById('attackCategory').value;
             const attackRoll = document.getElementById('attackRoll').value.trim();
@@ -638,9 +737,27 @@
                 notes
             };
 
+            console.log('🔥 ADDING ATTACK:', attack);
             attacks.push(attack);
+            
+            // FORCE SAVE IMMEDIATELY
+            saveData();
+            
             renderAttacks();
             clearForm();
+            
+            console.log('✅ ATTACK ADDED - Total attacks:', attacks.length);
+        }
+
+        function deleteAttack(id) {
+            console.log('🗑️ DELETING ATTACK:', id);
+            attacks = attacks.filter(attack => attack.id !== id);
+            
+            // FORCE SAVE IMMEDIATELY  
+            saveData();
+            
+            renderAttacks();
+            console.log('✅ ATTACK DELETED - Total attacks:', attacks.length);
         }
 
         function clearForm() {
@@ -670,11 +787,6 @@
             document.querySelector('.attack-type-option[data-type="attack"]').classList.add('selected');
             selectedAttackType = 'attack';
             toggleAttackFields();
-        }
-
-        function deleteAttack(id) {
-            attacks = attacks.filter(attack => attack.id !== id);
-            renderAttacks();
         }
 
         function rollDice(formula) {
@@ -857,6 +969,309 @@
             const damage = attack.damages[damageIndex];
             const result = rollDice(damage.formula);
             document.getElementById(`damage-${id}-${damageIndex}`).textContent = result;
+        }
+
+        // Data management functions - PROFILE SYSTEM
+        function saveData() {
+            try {
+                // Save current attacks to current profile
+                profiles[currentProfile] = {
+                    name: profiles[currentProfile]?.name || currentProfile,
+                    attacks: [...attacks],
+                    lastModified: new Date().toISOString()
+                };
+                
+                // Save all profiles to localStorage
+                localStorage.setItem('dndProfiles', JSON.stringify(profiles));
+                localStorage.setItem('dndCurrentProfile', currentProfile);
+                
+                console.log('✅ SAVED PROFILE:', currentProfile, 'with', attacks.length, 'attacks');
+                updateProfileList();
+            } catch (e) {
+                console.error('❌ SAVE FAILED:', e);
+            }
+        }
+
+        function loadData() {
+            try {
+                // Load all profiles
+                const savedProfiles = localStorage.getItem('dndProfiles');
+                const savedCurrentProfile = localStorage.getItem('dndCurrentProfile');
+                
+                if (savedProfiles) {
+                    profiles = JSON.parse(savedProfiles);
+                }
+                
+                if (savedCurrentProfile && profiles[savedCurrentProfile]) {
+                    currentProfile = savedCurrentProfile;
+                } else {
+                    currentProfile = 'default';
+                }
+                
+                // Load attacks from current profile
+                if (profiles[currentProfile]) {
+                    attacks = [...profiles[currentProfile].attacks];
+                    console.log('✅ LOADED PROFILE:', currentProfile, 'with', attacks.length, 'attacks');
+                } else {
+                    attacks = [];
+                    console.log('📝 NEW PROFILE:', currentProfile);
+                }
+                
+                updateProfileList();
+            } catch (e) {
+                console.error('❌ LOAD FAILED:', e);
+                attacks = [];
+                profiles = {};
+                currentProfile = 'default';
+            }
+        }
+
+        function saveProfile() {
+            const profileName = document.getElementById('profileName').value.trim();
+            if (!profileName) {
+                alert('Please enter a profile name!');
+                return;
+            }
+            
+            const profileKey = profileName.toLowerCase().replace(/[^a-z0-9]/g, '_');
+            currentProfile = profileKey;
+            
+            profiles[profileKey] = {
+                name: profileName,
+                attacks: [...attacks],
+                lastModified: new Date().toISOString()
+            };
+            
+            saveData();
+            document.getElementById('profileName').value = '';
+            alert(`Profile "${profileName}" saved!`);
+        }
+
+        function loadProfile(profileKey) {
+            if (profiles[profileKey]) {
+                currentProfile = profileKey;
+                attacks = [...profiles[profileKey].attacks];
+                saveData(); // Save current profile selection
+                renderAttacks();
+                updateProfileList();
+                console.log('✅ SWITCHED TO PROFILE:', profiles[profileKey].name);
+            }
+        }
+
+        function loadProfileDialog() {
+            if (Object.keys(profiles).length === 0) {
+                alert('No saved profiles found!');
+                return;
+            }
+            
+            let profileList = 'Select a profile to load:\n\n';
+            Object.keys(profiles).forEach((key, index) => {
+                const profile = profiles[key];
+                profileList += `${index + 1}. ${profile.name} (${profile.attacks.length} attacks)\n`;
+            });
+            
+            const selection = prompt(profileList + '\nEnter the number of the profile to load:');
+            const profileKeys = Object.keys(profiles);
+            const selectedIndex = parseInt(selection) - 1;
+            
+            if (selectedIndex >= 0 && selectedIndex < profileKeys.length) {
+                loadProfile(profileKeys[selectedIndex]);
+            }
+        }
+
+        function newProfile() {
+            if (attacks.length > 0) {
+                if (!confirm('Create new profile? Current unsaved changes will be lost.')) {
+                    return;
+                }
+            }
+            
+            attacks = [];
+            currentProfile = 'new_profile';
+            renderAttacks();
+            updateProfileList();
+            alert('New profile created! Add attacks and save when ready.');
+        }
+
+        function deleteProfile() {
+            if (Object.keys(profiles).length <= 1) {
+                alert('Cannot delete the last profile!');
+                return;
+            }
+            
+            const profileName = profiles[currentProfile]?.name || currentProfile;
+            if (confirm(`Delete profile "${profileName}"? This cannot be undone.`)) {
+                delete profiles[currentProfile];
+                
+                // Switch to first available profile
+                const remainingProfiles = Object.keys(profiles);
+                if (remainingProfiles.length > 0) {
+                    loadProfile(remainingProfiles[0]);
+                } else {
+                    currentProfile = 'default';
+                    attacks = [];
+                    renderAttacks();
+                }
+                
+                saveData();
+                alert('Profile deleted!');
+            }
+        }
+
+        function updateProfileList() {
+            const profileList = document.getElementById('profileList');
+            if (Object.keys(profiles).length === 0) {
+                profileList.innerHTML = '<p style="color: #666; text-align: center; font-style: italic;">No saved profiles</p>';
+                return;
+            }
+            
+            let html = '<h4 style="color: #ffd93d; margin-bottom: 10px;">Saved Profiles:</h4>';
+            
+            Object.keys(profiles).forEach(key => {
+                const profile = profiles[key];
+                const isActive = key === currentProfile;
+                const lastModified = new Date(profile.lastModified).toLocaleDateString();
+                
+                html += `
+                    <div class="profile-item ${isActive ? 'active' : ''}" onclick="loadProfile('${key}')">
+                        <div>
+                            <div class="profile-name">${profile.name} ${isActive ? '(Current)' : ''}</div>
+                            <div class="profile-info">${profile.attacks.length} attacks • ${lastModified}</div>
+                        </div>
+                        <div class="profile-actions">
+                            <button class="profile-btn" onclick="event.stopPropagation(); downloadSingleProfile('${key}')">📥 Download</button>
+                        </div>
+                    </div>
+                `;
+            });
+            
+            profileList.innerHTML = html;
+        }
+
+        function exportCurrentProfile() {
+            const profile = profiles[currentProfile];
+            if (!profile) {
+                alert('No current profile to download!');
+                return;
+            }
+            
+            downloadProfile(profile, currentProfile);
+        }
+
+        function exportAllProfiles() {
+            if (Object.keys(profiles).length === 0) {
+                alert('No profiles to download!');
+                return;
+            }
+            
+            const allProfiles = {
+                exportDate: new Date().toISOString(),
+                profileCount: Object.keys(profiles).length,
+                profiles: profiles
+            };
+            
+            const dataStr = JSON.stringify(allProfiles, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `all_monster_profiles_${new Date().toISOString().split('T')[0]}.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+            
+            alert(`Downloaded ${Object.keys(profiles).length} monster profiles!`);
+        }
+
+        function downloadProfile(profile, profileKey) {
+            const dataStr = JSON.stringify(profile, null, 2);
+            const dataBlob = new Blob([dataStr], {type: 'application/json'});
+            const url = URL.createObjectURL(dataBlob);
+            const link = document.createElement('a');
+            link.href = url;
+            link.download = `${profile.name.replace(/[^a-z0-9]/gi, '_')}_monster.json`;
+            document.body.appendChild(link);
+            link.click();
+            document.body.removeChild(link);
+            URL.revokeObjectURL(url);
+        }
+
+        function downloadSingleProfile(profileKey) {
+            const profile = profiles[profileKey];
+            if (!profile) return;
+            
+            downloadProfile(profile, profileKey);
+        }
+
+        function importProfile() {
+            document.getElementById('fileInput').click();
+        }
+
+        function handleFileImport(event) {
+            const file = event.target.files[0];
+            if (!file) return;
+
+            const reader = new FileReader();
+            reader.onload = function(e) {
+                try {
+                    const importedData = JSON.parse(e.target.result);
+                    
+                    // Check if it's a single profile or multiple profiles
+                    if (importedData.profiles) {
+                        // Multiple profiles file
+                        let importedCount = 0;
+                        let skippedCount = 0;
+                        
+                        Object.keys(importedData.profiles).forEach(key => {
+                            const profile = importedData.profiles[key];
+                            if (profiles[key]) {
+                                if (confirm(`Profile "${profile.name}" already exists. Overwrite it?`)) {
+                                    profiles[key] = profile;
+                                    importedCount++;
+                                } else {
+                                    skippedCount++;
+                                }
+                            } else {
+                                profiles[key] = profile;
+                                importedCount++;
+                            }
+                        });
+                        
+                        if (importedCount > 0) {
+                            saveData();
+                            updateProfileList();
+                            alert(`Imported ${importedCount} profiles! ${skippedCount > 0 ? `Skipped ${skippedCount} duplicates.` : ''}`);
+                        }
+                        
+                    } else if (importedData.name && importedData.attacks && Array.isArray(importedData.attacks)) {
+                        // Single profile file
+                        const profileKey = importedData.name.toLowerCase().replace(/[^a-z0-9]/g, '_');
+                        
+                        if (profiles[profileKey]) {
+                            if (!confirm(`Profile "${importedData.name}" already exists. Overwrite it?`)) {
+                                return;
+                            }
+                        }
+                        
+                        profiles[profileKey] = importedData;
+                        currentProfile = profileKey;
+                        attacks = [...importedData.attacks];
+                        
+                        saveData();
+                        renderAttacks();
+                        alert(`Profile "${importedData.name}" uploaded successfully!`);
+                    } else {
+                        alert('Invalid JSON file format. Please upload a valid monster profile file.');
+                    }
+                } catch (error) {
+                    alert('Error reading file. Please ensure it\'s a valid JSON file.');
+                }
+            };
+            reader.readAsText(file);
+            
+            // Reset file input
+            event.target.value = '';
         }
     </script>
 </body>
